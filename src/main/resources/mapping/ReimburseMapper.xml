@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.accp.jboa.dao.IReimburseDao">
+	
+	<resultMap type="Reimburse" id="DetailMap">
+		<id column="reimburseId" property="reimburseId"/>
+		<collection column="reimburseId" property="details" select="queryDetail">
+		</collection>
+	</resultMap>
+	
+	<select id="queryDetail" resultType="ReimburseDetail">
+		select * from `reimburse_detail` where `mainId` = #{0}
+	</select>
+
+	<select id="queryInfo" resultMap="DetailMap">
+		select * from `tb_reimburse` where `reimburseId` = #{id}
+	</select>
+	
+	<select id="queryCheck" resultType="CheckInfo">
+		SELECT a.*,b.*,c.`employeeId` as `checkMan`,c.`employeeName` as `checkManName`,d.* FROM `tb_check` a,`check_result` b,`employee` c,`position` d WHERE `bizid` = #{id} AND a.`checkResult` = b.`resultId` AND a.`checkMan` = c.`employeeId` AND c.`positionId` = d.`positionId`
+	</select>
+
+	<select id="query" resultType="ReimburseVo">
+		SELECT re.*,em.`employeeId` AS `createMan`,em.`employeeName` AS `createManName`,`next`.`employeeId` AS `nextDealMan`,`next`.`employeeName` AS `nextDealManName`,`sta`.*,`po`.*,`de`.* FROM `tb_reimburse` re,`employee` em ,`tb_status` `sta`,`position` `po`,`department` `de`,`employee` `next` where `next`.`employeeId` = re.`nextDealMan` AND re.`createMan` = em.`employeeId`
+		AND re.`statusId` = `sta`.`statusId` AND em.`positionId` = `po`.`positionId` AND em.`departmentId` = `de`.`departmentId`
+		<if test="r.reimburseId != null">
+			AND `re`.`reimburseId` = #{r.reimburseId}
+		</if>
+		<if test = "r.statusId != null">
+			AND `re`.`statusId` = #{r.statusId}
+		</if>
+	</select>
+	
+	<update id="checkbx">
+		update `tb_reimburse` set `nextDealMan` = (
+		<if test="rv.positionId != 1 and rv.statusId == 1">
+			select `employeeId` from `employee` where `departmentId` = #{rv.departmentId} AND `positionId` = 1
+		</if>
+		<if test="(rv.positionId == 1 and rv.statusId == 1) or rv.statusId == 2">
+			select `employeeId` from `employee` where `positionId` = 0
+		</if>
+		<if test="rv.statusId == 3">
+			select `employeeId` from `employee` where `positionId` = 4
+		</if>
+		<if test="rv.statusId == 4">
+			select `employeeId` from `employee` where `positionId` = 5
+		</if>
+		) where `reimburseId` = #{rv.reimburseId};
+		
+		update `tb_reimburse` set `statusId` = 
+		<if test="rv.positionId != 1 and rv.statusId == 1">
+			2
+		</if>
+		<if test="(rv.positionId == 1 and rv.statusId == 1) or rv.statusId == 2">
+			3
+		</if>
+		<if test="rv.statusId == 3">
+			4
+		</if>
+		<if test="rv.statusId == 4">
+			5
+		</if>
+		 where `reimburseId` = #{rv.reimburseId};
+	</update>
+	
+	<insert id="insertCheck">
+		insert into `tb_check`(`bizId`,`checkTime`,`checkMan`,`checkResult`,`checkComment`) 
+		values(#{c.bizId},Date(Now()),#{c.checkMan},#{c.checkResult},#{c.checkComment})
+	</insert>
+	
+	<select id="allStatus" resultType="Status">
+		select * from `tb_status`
+	</select>
+	
+</mapper>

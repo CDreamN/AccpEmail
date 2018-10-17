@@ -1,0 +1,27 @@
+.pull-left{
+	float: left;
+}
+.pull-right{
+	float: right;
+}
+h1,h2,h3,h4,h5,h6{margin: 0px;}
+.abso{
+	position: absolute;
+}
+.in-bl{
+	display: inline-block;
+}
+.input-text>span{
+	font-size: 16px;
+	font-weight: bold;
+}
+.input-text>input{
+	width: 70%;
+	padding: 2px 5px;
+	line-height: 30px;
+	font-size: 15px;
+	font-family: 'Droid Sans', sans-serif;
+}
+.margin-left{
+	margin-left:-352px;
+}
